@@ -1,5 +1,3 @@
-// import browser from 'webextension-polyfill';
-
 const store = new Store(browser.storage.local);
 
 browser.runtime.onInstalled.addListener(() => {

@@ -1,5 +1,3 @@
-// import browser from 'webextension-polyfill';
-
 const store = new window.Store(browser.storage.local);
 
 document.addEventListener("slipbox-links-created", function (e) {

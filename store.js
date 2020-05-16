@@ -12,4 +12,8 @@ class Store {
   }
 }
 
-window.Store = Store;
+if (typeof window !== "undefined") {
+  window.Store = Store;
+} else {
+  global.Store = Store;
+}

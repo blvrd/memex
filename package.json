@@ -1,0 +1,24 @@
+{
+  "name": "memex",
+  "version": "1.0.0",
+  "description": "",
+  "main": "background.js",
+  "scripts": {
+    "test": "teenytest ./test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/garrettqmartin8/memex.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/garrettqmartin8/memex/issues"
+  },
+  "homepage": "https://github.com/garrettqmartin8/memex#readme",
+  "devDependencies": {
+    "browser-env": "^3.3.0",
+    "teenytest": "^6.0.2",
+    "testdouble": "^3.15.0"
+  }
+}
