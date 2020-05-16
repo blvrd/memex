@@ -87,15 +87,7 @@ function main() {
     window.overriddenTributeCollection = [];
   }
 
-  document.addEventListener("turbolinks:load", function () {
-    clearPageData();
-  });
-
-  document.addEventListener("click", (e) => {
-    if (e.target.tagName !== "input" && e.target.type !== "submit") {
-      return;
-    }
-
+  function handleFormSubmit(e) {
     const currentForwardLinks = new Map();
     findForwardLinks(
       e.target.closest("form").querySelector("trix-editor")
@@ -176,6 +168,24 @@ function main() {
 
       document.dispatchEvent(titleChangedEvent);
     }
+  }
+
+  document.addEventListener("turbolinks:load", function () {
+    clearPageData();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (!(e.keyCode == 13 && e.metaKey)) return;
+
+    handleFormSubmit(e);
+  });
+
+  document.addEventListener("click", (e) => {
+    if (e.target.tagName !== "input" && e.target.type !== "submit") {
+      return;
+    }
+
+    handleFormSubmit(e);
   });
 
   document.addEventListener("change", function (e) {
