@@ -12,6 +12,7 @@ document.addEventListener("slipbox-links-created", function (e) {
 document.addEventListener("slipbox-tribute-attached", function () {
   browser.runtime.sendMessage({ message: "init" });
   store.get(["items", "browserType"]).then((data) => {
+    console.log(data);
     if (data.browserType === "firefox") {
       window.wrappedJSObject.recordings = cloneInto(data.items, window);
       window.wrappedJSObject.browserType = cloneInto(data.browserType, window);
