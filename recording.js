@@ -28,19 +28,27 @@ class Recording {
   }
 
   createBackLink(newBackLink) {
-    let payload;
+    let payload, newBackLinkContent;
+
+    if (this.containsBackLink(newBackLink)) {
+      newBackLinkContent = "";
+    } else if (this.containsAnyBackLinks()) {
+      newBackLinkContent = `<br>${newBackLink}`;
+    } else {
+      newBackLinkContent = `<br><br>Mentioned in:<br>${newBackLink}`;
+    }
 
     switch (this.basecampRecording.type) {
       case "Document":
         payload = {
           ...this.payload,
-          content: this.basecampRecording.content + newBackLink,
+          content: this.basecampRecording.content + newBackLinkContent,
         };
         break;
       case "Todo":
         payload = {
           ...this.payload,
-          description: this.basecampRecording.description + newBackLink,
+          description: this.basecampRecording.description + newBackLinkContent,
         };
         break;
     }
@@ -64,13 +72,16 @@ class Recording {
     return domLink.outerHTML;
   }
 
-  containsBackLinkFrom(otherRecording) {
+  containsBackLink(backLinkString) {
     const domNodes = this.htmlToElements(
       this.basecampRecording[this.backLinkFieldName]
     );
 
+    const backLinkNode = this.htmlToElement(backLinkString);
+
     return Array.from(domNodes.querySelectorAll("a")).some((a) => {
-      return a.href === otherRecording.app_url && a.innerHTML.includes("↩");
+      console.log(a.href, backLinkString);
+      return a.href === backLinkNode.href && a.innerHTML.includes("↩");
     });
   }
 
@@ -82,16 +93,6 @@ class Recording {
     return Array.from(domNodes.querySelectorAll("a")).some((a) => {
       return a.innerHTML.includes("↩");
     });
-  }
-
-  generateBackLinkContentToInsertInto(otherRecording) {
-    if (otherRecording.containsBackLinkFrom(this)) {
-      return "";
-    } else if (otherRecording.containsAnyBackLinks()) {
-      return `<br>${this.backLinkString}`;
-    } else {
-      return `<br><br>Mentioned in:<br>${this.backLinkString}`;
-    }
   }
 
   get backLinkFieldName() {

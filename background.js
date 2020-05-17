@@ -267,11 +267,9 @@ async function createBackLinks(newConnections) {
         })[0]
       );
 
-      const content = forwardLinkRecording.generateBackLinkContentToInsertInto(
-        backLinkRecording
-      );
-
-      const body = backLinkRecording.addBackLink(content).payload;
+      const body = backLinkRecording.createBackLink(
+        forwardLinkRecording.backLinkString
+      ).payload;
 
       return fetch(backLinkRecording.url, fetchOptions(authToken, "PUT", body));
     }
