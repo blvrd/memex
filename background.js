@@ -23,7 +23,7 @@ browser.runtime.onMessage.addListener((messageObj) => {
           console.log("POPULATED RECORDINGS");
           break;
         case "linksCreated":
-          await creatBackLinks(messageObj.newConnections);
+          await createBackLinks(messageObj.newConnections);
           console.log("CREATED BACKLINKS");
           break;
         case "linksDeleted":
@@ -249,7 +249,7 @@ function* getAllRecordings(authToken, url) {
   }
 }
 
-async function creatBackLinks(newConnections) {
+async function createBackLinks(newConnections) {
   let data = await store.get(["items", "accessToken"]);
 
   const requests = newConnections.map(
@@ -271,10 +271,7 @@ async function creatBackLinks(newConnections) {
         backLinkRecording
       );
 
-      const body = backLinkRecording.generatePayloadForUpdate(content);
-
-      console.log(content);
-      console.log(body);
+      const body = backLinkRecording.addBackLink(content).payload;
 
       return fetch(backLinkRecording.url, fetchOptions(authToken, "PUT", body));
     }

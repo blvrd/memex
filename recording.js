@@ -1,51 +1,72 @@
 class Recording {
-  constructor(recording) {
-    this.recording = recording;
-  }
+  constructor(basecampRecording) {
+    this.basecampRecording = basecampRecording;
+    let initialPayload;
 
-  generatePayloadForUpdate(newBackLinkContent) {
-    let payload;
-
-    switch (this.recording.type) {
+    switch (this.basecampRecording.type) {
       case "Document":
-        payload = {
-          title: this.recording.title,
-          content: this.recording.content + newBackLinkContent,
+        initialPayload = {
+          title: this.basecampRecording.title,
+          content: this.basecampRecording.content,
         };
         break;
       case "Todo":
-        payload = {
-          content: this.recording.content,
-          description: this.recording.description + newBackLinkContent,
-          assignee_ids: this.recording.assignee_ids,
-          completion_subscriber_ids: this.recording.completion_subscriber_ids,
-          notify: this.recording.notify,
-          due_on: this.recording.due_on,
-          starts_on: this.recording.starts_on,
+        initialPayload = {
+          content: this.basecampRecording.content,
+          description: this.basecampRecording.description,
+          assignee_ids: this.basecampRecording.assignee_ids,
+          completion_subscriber_ids: this.basecampRecording
+            .completion_subscriber_ids,
+          notify: this.basecampRecording.notify,
+          due_on: this.basecampRecording.due_on,
+          starts_on: this.basecampRecording.starts_on,
         };
         break;
     }
 
-    return payload;
+    this.payload = initialPayload;
+  }
+
+  createBackLink(newBackLink) {
+    let payload;
+
+    switch (this.basecampRecording.type) {
+      case "Document":
+        payload = {
+          ...this.payload,
+          content: this.basecampRecording.content + newBackLink,
+        };
+        break;
+      case "Todo":
+        payload = {
+          ...this.payload,
+          description: this.basecampRecording.description + newBackLink,
+        };
+        break;
+    }
+
+    const newRecording = new Recording(this.basecampRecording);
+    newRecording.payload = payload;
+    return newRecording;
   }
 
   get app_url() {
-    return this.recording.app_url;
+    return this.basecampRecording.app_url;
   }
 
   get url() {
-    return this.recording.url;
+    return this.basecampRecording.url;
   }
 
   get backLinkString() {
-    const domLink = this.htmlToElement(this.recording.value);
+    const domLink = this.htmlToElement(this.basecampRecording.value);
     domLink.innerHTML = domLink.innerHTML + " &#8617;";
     return domLink.outerHTML;
   }
 
   containsBackLinkFrom(otherRecording) {
     const domNodes = this.htmlToElements(
-      this.recording[this.backLinkFieldName]
+      this.basecampRecording[this.backLinkFieldName]
     );
 
     return Array.from(domNodes.querySelectorAll("a")).some((a) => {
@@ -55,7 +76,7 @@ class Recording {
 
   containsAnyBackLinks() {
     const domNodes = this.htmlToElements(
-      this.recording[this.backLinkFieldName]
+      this.basecampRecording[this.backLinkFieldName]
     );
 
     return Array.from(domNodes.querySelectorAll("a")).some((a) => {
@@ -74,7 +95,7 @@ class Recording {
   }
 
   get backLinkFieldName() {
-    switch (this.recording.type) {
+    switch (this.basecampRecording.type) {
       case "Document":
         return "content";
       case "Todo":

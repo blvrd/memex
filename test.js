@@ -94,7 +94,7 @@ module.exports = {
       '<br><a href="https://3.basecamp.com/4329389/buckets/14475433/documents/6789">[[Learn Ruby]] ↩</a>'
     );
   },
-  "generating payload for update": () => {
+  "creating backlinks": () => {
     const contentOne = recordingOne.generateBackLinkContentToInsertInto(
       recordingTwo
     );
@@ -105,9 +105,9 @@ module.exports = {
       recordingTwo
     );
 
-    const payloadOne = recordingTwo.generatePayloadForUpdate(contentOne);
-    const payloadTwo = recordingOne.generatePayloadForUpdate(contentTwo);
-    const payloadThree = recordingTwo.generatePayloadForUpdate(contentThree);
+    const payloadOne = recordingTwo.createBackLink(contentOne).payload;
+    const payloadTwo = recordingOne.createBackLink(contentTwo).payload;
+    const payloadThree = recordingTwo.createBackLink(contentThree).payload;
 
     assert.equal(
       payloadOne.content,
