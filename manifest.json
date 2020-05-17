@@ -46,13 +46,8 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "https://3.basecamp.com/*"
-      ],
-      "js": [
-        "store.js",
-        "contentScript.js"
-      ]
+      "matches": ["https://3.basecamp.com/*"],
+      "js": ["store.js", "recording.js", "contentScript.js"]
     }
   ]
 }

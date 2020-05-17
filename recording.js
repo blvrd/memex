@@ -3,27 +3,25 @@ class Recording {
     this.recording = recording;
   }
 
-  generateNewBackLinkPayload(otherRecording) {
+  generatePayloadForUpdate(newBackLinkContent) {
     let payload;
 
-    switch (otherRecording.type) {
+    switch (this.recording.type) {
       case "Document":
         payload = {
-          title: otherRecording.title,
-          content:
-            otherRecording.content + backLinkContent(this, otherRecording),
+          title: this.recording.title,
+          content: this.recording.content + newBackLinkContent,
         };
         break;
       case "Todo":
         payload = {
-          content: otherRecording.content,
-          description:
-            otherRecording.description + backLinkContent(this, otherRecording),
-          assignee_ids: otherRecording.assignee_ids,
-          completion_subscriber_ids: otherRecording.completion_subscriber_ids,
-          notify: otherRecording.notify,
-          due_on: otherRecording.due_on,
-          starts_on: otherRecording.starts_on,
+          content: this.recording.content,
+          description: this.recording.description + newBackLinkContent,
+          assignee_ids: this.recording.assignee_ids,
+          completion_subscriber_ids: this.recording.completion_subscriber_ids,
+          notify: this.recording.notify,
+          due_on: this.recording.due_on,
+          starts_on: this.recording.starts_on,
         };
         break;
     }
@@ -33,6 +31,10 @@ class Recording {
 
   get app_url() {
     return this.recording.app_url;
+  }
+
+  get url() {
+    return this.recording.url;
   }
 
   get backLinkString() {

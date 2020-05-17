@@ -23,7 +23,7 @@ browser.runtime.onMessage.addListener((messageObj) => {
           console.log("POPULATED RECORDINGS");
           break;
         case "linksCreated":
-          await createBacklinks(messageObj.newConnections);
+          await creatBackLinks(messageObj.newConnections);
           console.log("CREATED BACKLINKS");
           break;
         case "linksDeleted":
@@ -249,24 +249,32 @@ function* getAllRecordings(authToken, url) {
   }
 }
 
-async function createBacklinks(newConnections) {
+async function creatBackLinks(newConnections) {
   let data = await store.get(["items", "accessToken"]);
 
   const requests = newConnections.map(
     ({ forwardLinkRecordingID, backLinkRecordingID }) => {
       const authToken = data["accessToken"];
-      const forwardLinkRecording = data.items.filter((item) => {
-        return item.id === forwardLinkRecordingID;
-      })[0];
+      const forwardLinkRecording = new Recording(
+        data.items.filter((item) => {
+          return item.id === forwardLinkRecordingID;
+        })[0]
+      );
 
-      const backLinkRecording = data.items.filter((item) => {
-        return item.id === backLinkRecordingID;
-      })[0];
+      const backLinkRecording = new Recording(
+        data.items.filter((item) => {
+          return item.id === backLinkRecordingID;
+        })[0]
+      );
 
-      const body = generateNewBackLinkPayload(
-        forwardLinkRecording,
+      const content = forwardLinkRecording.generateBackLinkContentToInsertInto(
         backLinkRecording
       );
+
+      const body = backLinkRecording.generatePayloadForUpdate(content);
+
+      console.log(content);
+      console.log(body);
 
       return fetch(backLinkRecording.url, fetchOptions(authToken, "PUT", body));
     }
