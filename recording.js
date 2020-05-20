@@ -58,6 +58,49 @@ class Recording {
     return newRecording;
   }
 
+  deleteBackLink(backLink) {
+    let payload, newContent;
+
+    const domNodes = this.htmlToElements(
+      this.basecampRecording[this.backLinkFieldName]
+    );
+
+    const backLinkNode = this.htmlToElement(backLink);
+    const matchingAnchor = domNodes[0].parentNode.querySelector(
+      `[href='${backLinkNode.href}']`
+    );
+
+    newContent = this.basecampRecording[this.backLinkFieldName].replace(
+      `<br>${matchingAnchor.outerHTML}`,
+      ""
+    );
+
+    const otherExistingBacklinks = newContent.includes("]] ↩");
+
+    if (newContent.includes("Mentioned in:") && !otherExistingBacklinks) {
+      newContent = newContent.replace("<br><br>Mentioned in:", "");
+    }
+
+    switch (this.basecampRecording.type) {
+      case "Document":
+        payload = {
+          ...this.payload,
+          content: newContent,
+        };
+        break;
+      case "Todo":
+        payload = {
+          ...this.payload,
+          description: newContent,
+        };
+        break;
+    }
+
+    const newRecording = new Recording(this.basecampRecording);
+    newRecording.payload = payload;
+    return newRecording;
+  }
+
   get app_url() {
     return this.basecampRecording.app_url;
   }
@@ -79,10 +122,11 @@ class Recording {
 
     const backLinkNode = this.htmlToElement(backLinkString);
 
-    return Array.from(domNodes.querySelectorAll("a")).some((a) => {
-      console.log(a.href, backLinkString);
-      return a.href === backLinkNode.href && a.innerHTML.includes("↩");
-    });
+    return Array.from(domNodes[0].parentNode.querySelectorAll("a")).some(
+      (a) => {
+        return a.href === backLinkNode.href && a.innerHTML.includes("↩");
+      }
+    );
   }
 
   containsAnyBackLinks() {
@@ -90,9 +134,12 @@ class Recording {
       this.basecampRecording[this.backLinkFieldName]
     );
 
-    return Array.from(domNodes.querySelectorAll("a")).some((a) => {
-      return a.innerHTML.includes("↩");
-    });
+    return Array.from(domNodes[0].parentNode.querySelectorAll("a")).some(
+      (a) => {
+        console.log(a.innerHTML.includes("↩"));
+        return a.innerHTML.includes("↩");
+      }
+    );
   }
 
   get backLinkFieldName() {
@@ -114,7 +161,7 @@ class Recording {
   htmlToElements(html) {
     var template = document.createElement("template");
     template.innerHTML = html;
-    return template.content;
+    return template.content.children;
   }
 }
 

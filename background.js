@@ -176,7 +176,7 @@ function formatRecordings(recordings) {
 
     // recording.connection_ids =
     recording.key = displayText;
-    recording.value = `<a href=${recording.app_url}>[[${displayText}]]</a>`;
+    recording.value = `<a href="${recording.app_url}">[[${displayText}]]</a>`;
 
     return recording;
   });
@@ -400,38 +400,21 @@ async function deleteBackLinks(deletedConnections) {
 
   const requests = deletedConnections.map(
     ({ forwardLinkRecordingID, backLinkRecordingID }) => {
-      const forwardLinkRecording = data.items.filter((item) => {
-        return item.id === forwardLinkRecordingID;
-      })[0];
-
-      const backLinkRecording = data.items.filter((item) => {
-        return item.id === backLinkRecordingID;
-      })[0];
-
-      let recordingBackLinkField;
-      switch (backLinkRecording.type) {
-        case "Document":
-          recordingBackLinkField = "content";
-          break;
-        case "Todo":
-          recordingBackLinkField = "description";
-          break;
-      }
-
-      let newContent = backLinkRecording[recordingBackLinkField].replace(
-        backLinkString(forwardLinkRecording),
-        ""
+      const forwardLinkRecording = new Recording(
+        data.items.filter((item) => {
+          return item.id === forwardLinkRecordingID;
+        })[0]
       );
 
-      const otherExistingBacklinks = newContent.includes("]] ↩");
+      const backLinkRecording = new Recording(
+        data.items.filter((item) => {
+          return item.id === backLinkRecordingID;
+        })[0]
+      );
 
-      if (newContent.includes("<br>Mentioned in:") && !otherExistingBacklinks) {
-        newContent = newContent.replace("<br>Mentioned in:", "");
-      }
-
-      backLinkRecording[recordingBackLinkField] = newContent;
-
-      const body = generateUpdatedLinkPayload(backLinkRecording);
+      const body = backLinkRecording.deleteBackLink(
+        forwardLinkRecording.backLinkString
+      ).payload;
       return fetch(backLinkRecording.url, fetchOptions(authToken, "PUT", body));
     }
   );

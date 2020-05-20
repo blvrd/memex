@@ -17,7 +17,7 @@ module.exports = {
       app_url:
         "https://3.basecamp.com/4329389/buckets/14475433/documents/12345",
       content:
-        "<div>Some content about Javascript. With a reference to <a href=https://3.basecamp.com/4329389/buckets/14475433/documents/54321>[[Ruby]]</a></div>",
+        '<div>Some content about Javascript. With a reference to <a href="https://3.basecamp.com/4329389/buckets/14475433/documents/54321">[[Ruby]]</a></div>',
       created_at: "2020-05-07T01:10:20.084Z",
       id: 12345,
       key: "Javascript",
@@ -26,14 +26,14 @@ module.exports = {
       url:
         "https://3.basecampapi.com/4329389/buckets/14475433/documents/12345.json",
       value:
-        "<a href=https://3.basecamp.com/4329389/buckets/14475433/documents/12345>[[Javascript]]</a>",
+        '<a href="https://3.basecamp.com/4329389/buckets/14475433/documents/12345">[[Javascript]]</a>',
     });
 
     this.recordingTwo = new Recording({
       app_url:
         "https://3.basecamp.com/4329389/buckets/14475433/documents/54321",
       content:
-        "<div>Some content about Ruby</div><br><br>Mentioned in:<br><a href=https://3.basecamp.com/4329389/buckets/14475433/documents/12345>[[Javascript]] ↩</a>",
+        '<div>Some content about Ruby</div><br><br>Mentioned in:<br><a href="https://3.basecamp.com/4329389/buckets/14475433/documents/12345">[[Javascript]] ↩</a>',
       created_at: "2020-05-07T01:10:20.084Z",
       id: 54321,
       key: "Ruby",
@@ -42,7 +42,7 @@ module.exports = {
       url:
         "https://3.basecampapi.com/4329389/buckets/14475433/documents/54321.json",
       value:
-        "<a href=https://3.basecamp.com/4329389/buckets/14475433/documents/54321>[[Ruby]]</a>",
+        '<a href="https://3.basecamp.com/4329389/buckets/14475433/documents/54321">[[Ruby]]</a>',
     });
 
     this.recordingThree = new Recording({
@@ -56,7 +56,7 @@ module.exports = {
       url:
         "https://3.basecampapi.com/4329389/buckets/14475433/documents/6789.json",
       value:
-        "<a href=https://3.basecamp.com/4329389/buckets/14475433/documents/6789>[[Learn Ruby]]</a>",
+        '<a href="https://3.basecamp.com/4329389/buckets/14475433/documents/6789">[[Learn Ruby]]</a>',
     });
   },
   "getting a recording's backlink string": () => {
@@ -94,22 +94,35 @@ module.exports = {
 
     assert.equal(
       payloadOne.content,
-      "<div>Some content about Ruby</div><br><br>Mentioned in:<br><a href=https://3.basecamp.com/4329389/buckets/14475433/documents/12345>[[Javascript]] ↩</a>"
+      '<div>Some content about Ruby</div><br><br>Mentioned in:<br><a href="https://3.basecamp.com/4329389/buckets/14475433/documents/12345">[[Javascript]] ↩</a>'
     );
     assert.equal(
       payloadTwo.content,
-      '<div>Some content about Javascript. With a reference to <a href=https://3.basecamp.com/4329389/buckets/14475433/documents/54321>[[Ruby]]</a></div><br><br>Mentioned in:<br><a href="https://3.basecamp.com/4329389/buckets/14475433/documents/54321">[[Ruby]] ↩</a>'
+      '<div>Some content about Javascript. With a reference to <a href="https://3.basecamp.com/4329389/buckets/14475433/documents/54321">[[Ruby]]</a></div><br><br>Mentioned in:<br><a href="https://3.basecamp.com/4329389/buckets/14475433/documents/54321">[[Ruby]] ↩</a>'
     );
     assert.equal(
       payloadThree.content,
-      '<div>Some content about Ruby</div><br><br>Mentioned in:<br><a href=https://3.basecamp.com/4329389/buckets/14475433/documents/12345>[[Javascript]] ↩</a><br><a href="https://3.basecamp.com/4329389/buckets/14475433/documents/6789">[[Learn Ruby]] ↩</a>'
+      '<div>Some content about Ruby</div><br><br>Mentioned in:<br><a href="https://3.basecamp.com/4329389/buckets/14475433/documents/12345">[[Javascript]] ↩</a><br><a href="https://3.basecamp.com/4329389/buckets/14475433/documents/6789">[[Learn Ruby]] ↩</a>'
     );
   },
-  // "deleting backlinks": () => {
-  //   const payload = this.recordingTwo.deleteBackLink(
-  //     this.recordingOne.backLinkString
-  //   ).payload;
-  //
-  //   assert.equal(payload, "<div>Some content about Ruby</div>");
-  // },
+  "deleting a lone backlink": () => {
+    let payload = this.recordingTwo.deleteBackLink(
+      this.recordingOne.backLinkString
+    ).payload.content;
+
+    assert.equal(payload, "<div>Some content about Ruby</div>");
+  },
+  "deleting multiple backlinks": () => {
+    const recording = this.recordingTwo.createBackLink(
+      this.recordingThree.backLinkString
+    );
+
+    recording.basecampRecording.content = recording.payload.content;
+
+    assert.equal(
+      recording.deleteBackLink(this.recordingThree.backLinkString).payload
+        .content,
+      '<div>Some content about Ruby</div><br><br>Mentioned in:<br><a href="https://3.basecamp.com/4329389/buckets/14475433/documents/12345">[[Javascript]] ↩</a>'
+    );
+  },
 };
