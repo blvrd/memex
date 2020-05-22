@@ -277,7 +277,7 @@ function main() {
   }
 
   function attachTribute(element) {
-    console.log("yoyoyo");
+    document.body.style.position = "relative"; // So the Tribute menu always stays attached to the text
     const editor = element.editor;
     // editor.composition.delegate.inputController.events.keypress = function () {};
     editor.composition.delegate.inputController.events.keydown = function (
