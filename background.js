@@ -1,6 +1,10 @@
 const store = new Store(browser.storage.local);
 
 browser.runtime.onInstalled.addListener(() => {
+  setBrowserType();
+});
+
+async function setBrowserType() {
   let browserType;
 
   if (browser.identity.getRedirectURL().includes("allizom")) {
@@ -10,7 +14,8 @@ browser.runtime.onInstalled.addListener(() => {
   }
 
   store.set({ browserType: browserType });
-});
+  return browserType;
+}
 
 browser.runtime.onMessage.addListener((messageObj) => {
   const { message } = messageObj;
@@ -18,7 +23,7 @@ browser.runtime.onMessage.addListener((messageObj) => {
   return (async () => {
     try {
       switch (message) {
-        case "init":
+        case "needRecordings":
           await populateRecordings();
           console.log("POPULATED RECORDINGS");
           break;
@@ -39,6 +44,11 @@ browser.runtime.onMessage.addListener((messageObj) => {
           return { recording: newRecording };
           // await send message back with new recording
           break;
+        case "searchRecordings":
+          const searchResults = await searchRecordings(messageObj.searchTerm);
+          console.log("SEARCH");
+          return searchResults;
+          break;
       }
     } catch (error) {
       console.error(error);
@@ -46,12 +56,21 @@ browser.runtime.onMessage.addListener((messageObj) => {
   })();
 });
 
+async function searchRecordings(searchTerm) {
+  const { items } = await store.get("items");
+
+  return items.filter((item) => {
+    return item.key.toLowerCase().includes(searchTerm);
+  });
+}
+
 browser.runtime.onConnect.addListener((request, sender, sendResponse) => {
   return Promise.resolve(browser.identity.getRedirectUrl());
 });
 
 async function populateRecordings() {
   const accessToken = await getAccessToken();
+  console.log(accessToken);
   const account = await getAccount(accessToken);
   const allRecordings = await Promise.all([
     getRecordings(accessToken, account, "Document"),
@@ -215,9 +234,11 @@ async function getAccessToken() {
 
   if (!accessToken) {
     let redirectURI = await authorize();
-    return store.set({
-      accessToken: extractAccessToken(redirectURI),
+    const accessToken = extractAccessToken(redirectURI);
+    store.set({
+      accessToken: accessToken,
     });
+    return accessToken;
   } else {
     return accessToken;
   }

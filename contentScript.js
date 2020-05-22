@@ -8,23 +8,14 @@ document.addEventListener("slipbox-links-created", function (e) {
 });
 
 document.addEventListener("slipbox-tribute-attached", function () {
-  browser.runtime.sendMessage({ message: "init" });
-  store.get(["items", "browserType"]).then((data) => {
-    console.log(data);
-    if (data.browserType === "firefox") {
-      window.wrappedJSObject.recordings = cloneInto(data.items, window);
-      window.wrappedJSObject.browserType = cloneInto(data.browserType, window);
-    } else {
-      window.recordings = data.items;
+  (async () => {
+    data = await store.get("items");
+
+    if (!data.items) {
+      console.log("no data items");
+      await browser.runtime.sendMessage({ message: "needRecordings" });
     }
-
-    const fetchEvent = new CustomEvent("slipbox-data-fetched", {
-      bubbles: true,
-      detail: { data },
-    });
-
-    document.dispatchEvent(fetchEvent);
-  });
+  })();
 });
 
 document.addEventListener("slipbox-recording-title-changed", function (e) {
@@ -40,6 +31,29 @@ document.addEventListener("slipbox-forward-links-deleted", function (e) {
     message: "linksDeleted",
     deletedConnections: e.detail.deletedConnections,
   });
+});
+
+document.addEventListener("slipbox-search-recordings", (e) => {
+  (async () => {
+    console.log("ayyy");
+    const { browserType } = await store.get("browserType");
+    const searchResults = await browser.runtime.sendMessage({
+      message: "searchRecordings",
+      searchTerm: e.detail.searchTerm,
+    });
+
+    if (browserType == "firefox") {
+      window.wrappedJSObject.searchResults = cloneInto(searchResults, window);
+      window.wrappedJSObject.browserType = cloneInto(browserType, window);
+    }
+
+    document.dispatchEvent(
+      new CustomEvent("slipbox-search-recordings-results", {
+        bubbles: true,
+        detail: { searchResults: searchResults },
+      })
+    );
+  })();
 });
 
 document.addEventListener("slipbox-create-new-document", function (e) {
@@ -207,9 +221,6 @@ function main() {
       case "Alt":
         handleAlt();
         break;
-      case "Backspace":
-        handleBackspace(e);
-        break;
     }
   });
 
@@ -223,34 +234,6 @@ function main() {
     } else {
       overrideTributeCollection();
     }
-  }
-
-  function handleBackspace(e) {
-    // e.preventDefault();
-    // const editor = e.target.editor;
-    // const currentPosition = editor.getSelectedRange()[0];
-    // const docString = editor.getDocument().toString();
-    // let string = [
-    //   editor.composition.document.getCharacterAtPosition(currentPosition),
-    //   editor.composition.document.getCharacterAtPosition(currentPosition - 1),
-    //   editor.composition.document.getCharacterAtPosition(currentPosition - 2),
-    // ];
-    //
-    // if (window.browserType === "firefox") {
-    //   string.push(
-    //     editor.composition.document.getCharacterAtPosition(currentPosition - 2)
-    //   );
-    // }
-    //
-    // string = string.join("").trim();
-    //
-    // console.log(string);
-    // if (string.match("]]")) {
-    //   const deleteTo = docString.lastIndexOf("[[", currentPosition);
-    //   editor.setSelectedRange([deleteTo, currentPosition]);
-    // }
-    //
-    // editor.deleteInDirection("backward");
   }
 
   function overrideTributeCollection() {
@@ -271,6 +254,22 @@ function main() {
     window.overridingTributeCollection = false;
   }
 
+  function debounce(func, wait, immediate) {
+    var timeout;
+    return function () {
+      var context = this,
+        args = arguments;
+      var later = function () {
+        timeout = null;
+        if (!immediate) func.apply(context, args);
+      };
+      var callNow = immediate && !timeout;
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+      if (callNow) func.apply(context, args);
+    };
+  }
+
   function htmlToElements(html) {
     const template = document.createElement("template");
     template.innerHTML = html;
@@ -278,6 +277,7 @@ function main() {
   }
 
   function attachTribute(element) {
+    console.log("yoyoyo");
     const editor = element.editor;
     // editor.composition.delegate.inputController.events.keypress = function () {};
     editor.composition.delegate.inputController.events.keydown = function (
@@ -348,7 +348,16 @@ function main() {
     window.tribute = new window.Tribute({
       trigger: "[[",
       allowSpaces: true,
-      values: [],
+      values: (text, callback) => {
+        (async () => {
+          const data = await searchRecordings(text);
+
+          // debouncing prevents the callback from being fired on every single
+          // keystroke and should prevent jank
+          const debouncedCallback = debounce(callback, 200);
+          debouncedCallback(data);
+        })();
+      },
       menuItemTemplate: (item) => {
         const dateParts = item.original.created_at.split("T")[0].split("-");
         const formattedDate = new Date(
@@ -539,6 +548,25 @@ function main() {
     element.dispatchEvent(attachedEvent);
   }
 
+  function searchRecordings(searchTerm) {
+    document.dispatchEvent(
+      new CustomEvent("slipbox-search-recordings", {
+        bubbles: true,
+        detail: { searchTerm: searchTerm },
+      })
+    );
+
+    return new Promise((resolve) => {
+      document.addEventListener("slipbox-search-recordings-results", (e) => {
+        if (window.browserType == "firefox") {
+          resolve(window.searchResults);
+        } else {
+          resolve(e.detail.searchResults);
+        }
+      });
+    });
+  }
+
   function findForwardLinks(element) {
     return (
       Array.from(element.querySelectorAll("a")).filter((link) => {
@@ -588,14 +616,6 @@ function main() {
 
   document.addEventListener("trix-initialize", function (e) {
     attachTribute(e.target);
-  });
-
-  document.addEventListener("slipbox-data-fetched", function (e) {
-    if (window.browserType == "firefox") {
-      window.tribute.append(0, window.recordings);
-    } else {
-      window.tribute.append(0, e.detail.data.items);
-    }
   });
 }
 
