@@ -56,6 +56,10 @@ browser.runtime.onMessage.addListener((messageObj) => {
   })();
 });
 
+browser.runtime.onConnect.addListener((request, sender, sendResponse) => {
+  return Promise.resolve(browser.identity.getRedirectUrl());
+});
+
 async function searchRecordings(searchTerm) {
   const { items } = await store.get("items");
 
@@ -63,10 +67,6 @@ async function searchRecordings(searchTerm) {
     return item.key.toLowerCase().includes(searchTerm);
   });
 }
-
-browser.runtime.onConnect.addListener((request, sender, sendResponse) => {
-  return Promise.resolve(browser.identity.getRedirectUrl());
-});
 
 async function populateRecordings() {
   const accessToken = await getAccessToken();
@@ -288,9 +288,22 @@ async function createBackLinks(newConnections) {
         })[0]
       );
 
-      const body = backLinkRecording.createBackLink(
+      const updatedRecording = backLinkRecording.createBackLink(
         forwardLinkRecording.backLinkString
-      ).payload;
+      );
+
+      const body = updatedRecording.payload;
+
+      const updatedRecordings = data.items.map((recording) => {
+        if (recording.id === updatedRecording.basecampRecording.id) {
+          recording[updatedRecording.backLinkFieldName] =
+            updatedRecording.basecampRecording[
+              updatedRecording.backLinkFieldName
+            ];
+        }
+        return recording;
+      });
+      store.set({ items: updatedRecordings });
 
       return fetch(backLinkRecording.url, fetchOptions(authToken, "PUT", body));
     }
