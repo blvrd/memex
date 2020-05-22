@@ -288,27 +288,15 @@ async function createBackLinks(newConnections) {
         })[0]
       );
 
-      const updatedRecording = backLinkRecording.createBackLink(
+      const body = backLinkRecording.createBackLink(
         forwardLinkRecording.backLinkString
-      );
-
-      const body = updatedRecording.payload;
-
-      const updatedRecordings = data.items.map((recording) => {
-        if (recording.id === updatedRecording.basecampRecording.id) {
-          recording[updatedRecording.backLinkFieldName] =
-            updatedRecording.basecampRecording[
-              updatedRecording.backLinkFieldName
-            ];
-        }
-        return recording;
-      });
-      store.set({ items: updatedRecordings });
+      ).payload;
 
       return fetch(backLinkRecording.url, fetchOptions(authToken, "PUT", body));
     }
   );
 
+  populateRecordings();
   return Promise.all(requests);
 }
 
@@ -452,6 +440,8 @@ async function deleteBackLinks(deletedConnections) {
       return fetch(backLinkRecording.url, fetchOptions(authToken, "PUT", body));
     }
   );
+
+  populateRecordings();
 
   return Promise.all(requests);
 }
