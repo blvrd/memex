@@ -75,6 +75,11 @@ class Recording {
       ""
     );
 
+    newContent = this.basecampRecording[this.backLinkFieldName].replace(
+      `${matchingAnchor.outerHTML}`,
+      ""
+    );
+
     const otherExistingBacklinks = newContent.includes("]] ↩");
 
     if (newContent.includes("Mentioned in:") && !otherExistingBacklinks) {
