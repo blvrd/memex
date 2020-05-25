@@ -29,18 +29,22 @@ browser.runtime.onMessage.addListener((messageObj) => {
           break;
         case "linksCreated":
           await createBackLinks(messageObj.newConnections);
+          populateRecordings();
           console.log("CREATED BACKLINKS");
           break;
         case "linksDeleted":
           await deleteBackLinks(messageObj.deletedConnections);
+          populateRecordings();
           console.log("DELETED BACKLINKS");
           break;
         case "recordingTitleChanged":
           await updateLinkTitles(messageObj);
+          populateRecordings();
           console.log("UPDATED LINK TITLES");
           break;
         case "createNewDocument":
           let newRecording = await createNewDocument(messageObj);
+          populateRecordings();
           return { recording: newRecording };
           // await send message back with new recording
           break;
@@ -296,7 +300,6 @@ async function createBackLinks(newConnections) {
     }
   );
 
-  populateRecordings();
   return Promise.all(requests);
 }
 
@@ -440,8 +443,6 @@ async function deleteBackLinks(deletedConnections) {
       return fetch(backLinkRecording.url, fetchOptions(authToken, "PUT", body));
     }
   );
-
-  populateRecordings();
 
   return Promise.all(requests);
 }
