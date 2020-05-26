@@ -74,7 +74,6 @@ async function searchRecordings(searchTerm) {
 
 async function populateRecordings() {
   const accessToken = await getAccessToken();
-  console.log(accessToken);
   const account = await getAccount(accessToken);
   const allRecordings = await Promise.all([
     getRecordings(accessToken, account, "Document"),

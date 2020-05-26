@@ -12,10 +12,13 @@ document.addEventListener("slipbox-tribute-attached", function () {
     data = await store.get("items");
 
     if (!data.items) {
-      console.log("no data items");
       await browser.runtime.sendMessage({ message: "needRecordings" });
     }
   })();
+});
+
+document.addEventListener("slipbox-update-recordings", function () {
+  browser.runtime.sendMessage({ message: "needRecordings" });
 });
 
 document.addEventListener("slipbox-recording-title-changed", function (e) {
@@ -35,7 +38,6 @@ document.addEventListener("slipbox-forward-links-deleted", function (e) {
 
 document.addEventListener("slipbox-search-recordings", (e) => {
   (async () => {
-    console.log("ayyy");
     const { browserType } = await store.get("browserType");
     const searchResults = await browser.runtime.sendMessage({
       message: "searchRecordings",
@@ -184,6 +186,21 @@ function main() {
 
   document.addEventListener("turbolinks:load", function () {
     clearPageData();
+    const draftSubmitInput = document.querySelector(
+      'input[value="Save as a draft"]'
+    );
+
+    if (draftSubmitInput) {
+      draftSubmitInput.closest("form").addEventListener("click", (e) => {
+        if (e.target.nodeName === "BUTTON") {
+          document.dispatchEvent(
+            new CustomEvent("slipbox-update-recordings", {
+              bubbles: true,
+            })
+          );
+        }
+      });
+    }
   });
 
   document.addEventListener("keydown", (e) => {
