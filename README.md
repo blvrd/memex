@@ -1,6 +1,6 @@
 # Memex
 
-![screen recording](https://imgur.com/a/xpNDRUr)
+![screen recording](screen_recording.gif)
 
 Memex is an experiment web extension that automaticall backlinks Basecamp todos and documents. I haven't published the extension for distribution for a few reasons:
 
